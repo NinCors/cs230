@@ -70,21 +70,30 @@ int rand_uniform(int memory_num){
     Credit to the stackoverflow answer
     https://stackoverflow.com/questions/32575167/generate-random-numbers-with-uniform-distribution-getting-same-number-in-loop
     */
+ 
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    static std::default_random_engine rand_engine (seed);
-    std::uniform_real_distribution<int> res (0,memory_num);
-    return res(rand_engine);
+    static std::default_random_engine rand_engine(seed);
+
+    std::uniform_int_distribution<int> res (0,memory_num-1);
+    int r = res(rand_engine);
+    return r;
 }
 
 int rand_gaussian(int memory_num){
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     static std::default_random_engine rand_engine (seed);
+    static std::default_random_engine rand_engine1 (seed+1);
+    std::uniform_real_distribution<int> res (0,memory_num);
+    int mean = res(rand_engine1);
+
+    std::normal_distribution<int> distribution(mean,1);
     while(true){
-        
+        int res = distribution(rand_engine);
+        if(res >=0 || res< memory_num){
+            return res;
+        }
     }
 }
-
-
 
 float getAverageTime(int processor_num, int memory_num){
     vector<int> memory_request; // the request memory index for each processor, -1 stands for no request
@@ -105,14 +114,16 @@ float getAverageTime(int processor_num, int memory_num){
     float total_wait_time = 0;
     float pre_wait_time = -1;
 
-    for(int i=0; i<time_circles; ++i){
+    for(int i=1; i<=time_circles; ++i){
         float wait_time = 0;
+        //cout<<"Time circle : " << i<<endl;
 
-        for(int p = 0; p<processor_num; ++w){
+        for(int p = 0; p<processor_num; ++p){
             //Loop all the processor, if the memory request is empty, then random generate one
             //And, push the processor with new memory request to the request_queue.
             if(memory_request[p] == -1){
-                int memory_index = 0;
+                int memory_index = rand_uniform(memory_num);
+                //cout<<"Memory index is "<<memory_index<<endl;;
                 memory_request[p] = memory_index;
                 request_queue.push_back(p);
             }
@@ -133,8 +144,14 @@ float getAverageTime(int processor_num, int memory_num){
         }
         total_wait_time += wait_time;
         
-        if(abs(pre_wait_time - wait_time)/pre_wait_time < 0.0002){
-            return total_wait_time/(i*processor_num);    
+        if( (abs(pre_wait_time - wait_time)/abs(pre_wait_time)) < 0.0002){
+            //cout<<"Similar return"<<endl;
+            //cout<<"pre "<<pre_wait_time<<endl;
+            //cout<<"wait_time"<<wait_time<<endl;
+            //cout<<"Total_wait_time"<<total_wait_time<<endl;
+            float res = total_wait_time/(i*processor_num);
+            //cout<<"res"<<res<<endl;
+            return res;    
         }
 
         pre_wait_time = wait_time;
@@ -144,17 +161,16 @@ float getAverageTime(int processor_num, int memory_num){
 }
 
 
-
-
-
-
-
-
-
 int main() 
 {
-    cout << "Hello, World!";
+    int processors_num[] = {2,4,8,16,32,64};
+
+    for(int p = 0; p < 1; ++p){
+        for(int m = 1; m <= 2048; ++m){
+            float average_wait_time = getAverageTime(processors_num[p],m);
+            cout<<"The average time is "<< average_wait_time << " for processor " << processors_num[p] <<" with memory "<<m<<endl;
+        }
+    }
+
     return 0;
-
-
 }
