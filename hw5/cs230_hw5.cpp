@@ -2,7 +2,7 @@
 #include <vector>;
 #include <random>;
 #include <chrono>;
-
+#include <unordered_map>;
 using namespace std;
 
 /*
@@ -30,7 +30,6 @@ balance strategy:
 
 struct processor{
     int load_units=-1;
-    int schedule_time=-1;
 };
 
 int rand_uniform(int low, int high){
@@ -50,13 +49,22 @@ int rand_uniform(int low, int high){
 
 int process(int p_num){
     vector<processor> processors;
-
+    unordered_map<int, int> map; 
     //initial a random load unit number and scheduling the load activity time for each processor
     for(int i =0;i<p_num;i++){
         processor p;
         p.load_units = rand_uniform(10,1000);
-        p.schedule_time = rand_uniform(100,1000);
+        int schedule_time = rand_uniform(100,1000);
+        map[schedule_time] = i;
+        processors.push_back(p);
     }
+
+    for(int r = 0; r < 100; ++r){ // round
+        for(t = 0; t<=1000, ++t){ // time loop
+            
+        }
+    }
+
 
 }
 
