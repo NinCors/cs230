@@ -1,8 +1,8 @@
-#include <iostream>;
-#include <vector>;
-#include <random>;
-#include <chrono>;
-#include <unordered_map>;
+#include <iostream>
+#include <vector>
+#include <random>
+#include <chrono>
+#include <unordered_map>
 using namespace std;
 
 /*
@@ -108,7 +108,7 @@ int process(int p_num){
         processors.push_back(p);
     }
     int time_count = 0;
-    for(int r = 0; r < 100; ++r){ // round
+    for(int r = 0; r < 10000; ++r){ // round
         for(int t = 0; t<=1000; ++t){ // time loop
             time_count++;
             if(map.count(t)!=0){
@@ -117,6 +117,7 @@ int process(int p_num){
                 if(is_balance(processors,p_num)){
                     return time_count;
                 }
+                print_processors(processors);
             }
         }
     }
@@ -126,7 +127,7 @@ int process(int p_num){
 }
 
 int main(){
-    int K[3] = {5,10,100};
+    int K[3] = {5};
     for (auto p_num:K){
         int time = process(p_num);
         cout<<"Took "<< time <<" circles to reach the balance of "<<p_num<<" processors"<<endl;
