@@ -47,6 +47,55 @@ int rand_uniform(int low, int high){
     return r;
 }
 
+void load_balance(processor &p1, processor &p, processor &p2){
+    int average = (p1.load_units + p.load_units + p2.load_units)/3;
+    if(p.load_units > average){
+        int diff = p.load_units - average;
+        p.load_units -= diff;
+        if(p1.load_units < average){
+            int diff1 = average - p1.load_units;
+            if(diff1 >= diff){
+                p1.load_units += diff;
+                diff = 0;
+            }
+            else{
+                diff = diff - diff1;
+                p1.load_units += diff;
+            }
+        }
+        if(p2.load_units < average){
+            int diff2 = average - p2.load_units;
+            if(diff2 >= diff){
+                p2.load_units += diff;
+                diff = 0;
+            }
+            else{
+                diff = diff - diff2;
+                p2.load_units += diff;
+            }
+        }
+        if(diff > 0){
+            p.load_units += diff;
+        }
+
+    }
+
+}
+
+bool is_balance(vector<processor> processors,int k){
+    for(int i =0;i< processors.size();i++){
+        if(abs(processors[i].load_units - processors[(i-1)% k].load_units) > 1 || abs(processors[i].load_units - processors[(i+1)% k].load_units) > 1 ){
+            return false;
+        }
+    }
+    return true;
+}
+
+void print_processors(vector<processor> processors){
+    for(int i =0;i < processors.size();i++){
+        cout<<"The load unit for processor "<< i <<" is "<<processors[i].load_units<<endl;
+    }
+}
 int process(int p_num){
     vector<processor> processors;
     unordered_map<int, int> map; 
@@ -58,12 +107,20 @@ int process(int p_num){
         map[schedule_time] = i;
         processors.push_back(p);
     }
-
+    int time_count = 0;
     for(int r = 0; r < 100; ++r){ // round
-        for(t = 0; t<=1000, ++t){ // time loop
-            
+        for(int t = 0; t<=1000; ++t){ // time loop
+            time_count++;
+            if(map.count(t)!=0){
+                int processor_index = map[t];
+                load_balance(processors[(processor_index-1)%p_num],processors[processor_index],processors[(processor_index+1)%p_num]);
+                if(is_balance(processors,p_num)){
+                    return time_count;
+                }
+            }
         }
     }
+    return -1;
 
 
 }
