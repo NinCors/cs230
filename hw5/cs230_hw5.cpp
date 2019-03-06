@@ -3,6 +3,8 @@
 #include <random>
 #include <chrono>
 #include <unordered_map>
+
+
 using namespace std;
 
 /*
@@ -28,10 +30,18 @@ balance strategy:
         p>x, p1>x, p2<x : give the extra unit to p2 to help it reacheds x
 */
 
+int mod(int a,int b) {
+    int res = a % b;
+    if (res < 0){
+        res += b;
+    }
+    return res;
+}
+
+
 struct processor{
     int load_units=-1;
 };
-
 int rand_uniform(int low, int high){
     /*
     Credit to the stackoverflow answer
@@ -47,8 +57,19 @@ int rand_uniform(int low, int high){
     return r;
 }
 
+void new_load_balance(processor &p1, processor &p, processor &p2){
+    int average = (p1.load_units + p.load_units + p2.load_units)/3;
+    p.load_units = average;
+    p1.load_units = average;
+    p2.load_units = average;
+    if( (average*3) < (p1.load_units + p.load_units + p2.load_units)){
+        p2.load_units +=1;
+    }
+}
+
 void load_balance(processor &p1, processor &p, processor &p2){
     int average = (p1.load_units + p.load_units + p2.load_units)/3;
+    //cout<<"Load balancing ac for "<< p1.load_units << " : " << p.load_units << " : "<< p2.load_units <<" with average "<<average<<endl;
     if(p.load_units > average){
         int diff = p.load_units - average;
         p.load_units -= diff;
@@ -79,18 +100,17 @@ void load_balance(processor &p1, processor &p, processor &p2){
         }
 
     }
+    //cout<<"After : Load balancing ac for "<< p1.load_units << " : " << p.load_units << " : "<< p2.load_units<<endl;
 
 }
-
 bool is_balance(vector<processor> processors,int k){
     for(int i =0;i< processors.size();i++){
-        if(abs(processors[i].load_units - processors[(i-1)% k].load_units) > 1 || abs(processors[i].load_units - processors[(i+1)% k].load_units) > 1 ){
+        if(abs(processors[i].load_units - processors[mod(i-1,k)].load_units) > 2 || abs(processors[i].load_units - processors[mod(i+1, k)].load_units) > 2 ){
             return false;
         }
     }
     return true;
 }
-
 void print_processors(vector<processor> processors){
     for(int i =0;i < processors.size();i++){
         cout<<"The load unit for processor "<< i <<" is "<<processors[i].load_units<<endl;
@@ -108,29 +128,30 @@ int process(int p_num){
         processors.push_back(p);
     }
     int time_count = 0;
-    for(int r = 0; r < 10000; ++r){ // round
+    for(int r = 0; r < 1000000; ++r){ // round
         for(int t = 0; t<=1000; ++t){ // time loop
             time_count++;
             if(map.count(t)!=0){
                 int processor_index = map[t];
-                load_balance(processors[(processor_index-1)%p_num],processors[processor_index],processors[(processor_index+1)%p_num]);
+                load_balance(processors[mod(processor_index-1,p_num)],processors[processor_index],processors[mod(processor_index+1,p_num)]);
                 if(is_balance(processors,p_num)){
+                    print_processors(processors);
                     return time_count;
                 }
-                print_processors(processors);
             }
         }
     }
+    print_processors(processors);
     return -1;
-
-
 }
-
 int main(){
-    int K[3] = {5};
+    int K[3] = {5,10,100};
+    vector<int> res;
     for (auto p_num:K){
         int time = process(p_num);
-        cout<<"Took "<< time <<" circles to reach the balance of "<<p_num<<" processors"<<endl;
+        res.push_back(time);
     }
-
+    for (auto r:res){
+        cout<<"Took "<< r <<" circles to reach the balance " <<endl;
+    }
 }
