@@ -58,13 +58,21 @@ int rand_uniform(int low, int high){
 }
 
 void new_load_balance(processor &p1, processor &p, processor &p2){
+
     int average = (p1.load_units + p.load_units + p2.load_units)/3;
-    p.load_units = average;
-    p1.load_units = average;
-    p2.load_units = average;
-    if( (average*3) < (p1.load_units + p.load_units + p2.load_units)){
-        p2.load_units +=1;
+    cout<<"Load balancing ac for "<< p1.load_units << " : " << p.load_units << " : "<< p2.load_units <<" with average "<<average<<endl;
+    int add = 0;
+    if(average*3 < (p.load_units + p1.load_units + p2.load_units)){
+        add =1;
     }
+    p.load_units += p1.load_units + p2.load_units;
+    p1.load_units = average;
+    p2.load_units = average+add;
+    p.load_units = average;
+    
+    
+    cout<<"After:Load balancing ac for "<< p1.load_units << " : " << p.load_units << " : "<< p2.load_units <<" with average "<<average<<endl;
+
 }
 
 void load_balance(processor &p1, processor &p, processor &p2){
@@ -106,6 +114,7 @@ void load_balance(processor &p1, processor &p, processor &p2){
 bool is_balance(vector<processor> processors,int k){
     for(int i =0;i< processors.size();i++){
         if(abs(processors[i].load_units - processors[mod(i-1,k)].load_units) > 2 || abs(processors[i].load_units - processors[mod(i+1, k)].load_units) > 2 ){
+            cout<<"Wrong for "<<processors[mod(i-1,k)].load_units <<" : " <<processors[i].load_units << " : " << processors[mod(i+1, k)].load_units<<endl;
             return false;
         }
     }
@@ -133,10 +142,14 @@ int process(int p_num){
             time_count++;
             if(map.count(t)!=0){
                 int processor_index = map[t];
-                load_balance(processors[mod(processor_index-1,p_num)],processors[processor_index],processors[mod(processor_index+1,p_num)]);
+                new_load_balance(processors[mod(processor_index-1,p_num)],processors[processor_index],processors[mod(processor_index+1,p_num)]);
                 if(is_balance(processors,p_num)){
                     print_processors(processors);
                     return time_count;
+                }
+                if(r > 10000){
+                    print_processors(processors);
+                    return -1;
                 }
             }
         }
